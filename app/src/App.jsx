@@ -112,7 +112,7 @@ const Clock = (props) => {
 
 // implements play, pause and reset functionality
 const PlayControls = (props) => {
-  const { timeLeft, setTimeLeft, playing, setPlaying, sessionLength } = props;
+  const { timeLeft, setTimeLeft, playing, setPlaying, setSessionLength, setBreakLength } = props;
 
   let intervalRef = useRef(null);
   // toggle the playing state
@@ -128,7 +128,9 @@ const PlayControls = (props) => {
   // reset the timer
   const reset = () => {
     setPlaying(false);
-    setTimeLeft(new Date(sessionLength*60*1000));
+    setTimeLeft(new Date(25*60*1000));
+    setSessionLength(25);
+    setBreakLength(5);
   }
 
   useEffect(() => {
