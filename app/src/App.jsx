@@ -12,14 +12,18 @@ function App() {
     setBreakLength,
     sessionLength,
     setSessionLength,
+    timeLeft,
+    setTimeLeft,
+    playing,
+    setPlaying
   };
   return (
     <div className="grid place-items-center w-screen h-screen bg-bg text-fg font-pp">
       <div className="flex flex-col  py-10 items-center h-screen w-screen sm:w-[min(100vw,80vh)]">
         <h1 id="title" className="text-4xl mb-10 text-center">25 + 5 Clock</h1>
-        <TimeControls {...props} setTimeLeft={setTimeLeft} />
-        <Clock timeLeft={timeLeft} sessionLength={sessionLength} />
-        <PlayControls setTimeLeft={setTimeLeft} timeLeft={timeLeft} playing={playing} setPlaying={setPlaying} sessionLength={sessionLength} />
+        <TimeControls {...props} />
+        <Clock {...props} />
+        <PlayControls {...props} />
       </div>
     </div>
   );
@@ -33,28 +37,51 @@ const TimeControls = (props) => {
     breakLength,
     setBreakLength,
     setTimeLeft,
+    playing,
   } = props;
+  const bprops = {
+    length: breakLength,
+    setter: setBreakLength,
+    label: "Break",
+    isBreak: true,
+    setTimeLeft,
+    playing,
+  }
+  const sprops = {
+    length: sessionLength,
+    setter: setSessionLength,
+    label: "Session",
+    isBreak: false,
+    setTimeLeft,
+    playing,
+  }
   return (
     <div id="time-controls" className="w-full flex justify-around md:justify-between">
-      <SessionBreak length={breakLength} setter={setBreakLength} label={"Break"} isBreak={true} setTimeLeft={setTimeLeft}/>
-      <SessionBreak length={sessionLength} setter={setSessionLength} label={"Session"} isBreak={false} setTimeLeft={setTimeLeft}/>
+      <SessionBreak {...bprops} />
+      <SessionBreak {...sprops} />
     </div>
   );
 }
 
 // adjusts the seession and break times
-const SessionBreak = ({ length, setter, label, isBreak, setTimeLeft }) => {
+const SessionBreak = (props) => {
+  const { length, setter, label, isBreak, setTimeLeft, playing } = props;
+
   const setIncrement = () => {
-    let newLength = length + 1;
-    newLength = newLength > 60 ? 60 : newLength;
-    setter(newLength);
-    if (!isBreak) setTimeLeft(new Date(newLength*60*1000));
+    if (!playing) {
+      let newLength = length + 1;
+      newLength = newLength > 60 ? 60 : newLength;
+      setter(newLength);
+      if (!isBreak) setTimeLeft(new Date(newLength*60*1000));
+    }
   }
   const setDecrement = () => {
-    let newLength = length - 1;
-    newLength = newLength < 1 ? 1 : newLength;
-    setter(newLength);
-    if (!isBreak) setTimeLeft(new Date(newLength*60*1000));
+    if (!playing) {
+      let newLength = length - 1;
+      newLength = newLength < 1 ? 1 : newLength;
+      setter(newLength);
+      if (!isBreak) setTimeLeft(new Date(newLength*60*1000));
+    }
   }
 
   return (
@@ -70,7 +97,9 @@ const SessionBreak = ({ length, setter, label, isBreak, setTimeLeft }) => {
 }
 
 // displays the time left in a session or break
-const Clock = ({ timeLeft, sessionLength }) => {
+const Clock = (props) => {
+  const { timeLeft, sessionLength } = props;
+
   let minutes = sessionLength < 60 ? timeLeft.getMinutes().toString().padStart(2, '0') : '60';
   let seconds = timeLeft.getSeconds().toString().padStart(2, '0');
   return (
@@ -82,7 +111,9 @@ const Clock = ({ timeLeft, sessionLength }) => {
 }
 
 // implements play, pause and reset functionality
-const PlayControls = ({ timeLeft, setTimeLeft, playing, setPlaying, sessionLength }) => {
+const PlayControls = (props) => {
+  const { timeLeft, setTimeLeft, playing, setPlaying, sessionLength } = props;
+
   let intervalRef = useRef(null);
   // toggle the playing state
   const toggle = () => {
@@ -122,8 +153,8 @@ const PlayControls = ({ timeLeft, setTimeLeft, playing, setPlaying, sessionLengt
 
   return (
     <div className="flex gap-5 w-3/5 justify-center items-center mt-6">
-      <button type="button" onClick={toggle} className="bg-play-pause bg-contain bg-no-repeat h-20 w-20"></button>
-      <button type="button" onClick={reset} className="bg-reset bg-contain bg-no-repeat h-[4.5rem] w-[4.5rem]"></button>
+      <button id="start_stop" type="button" onClick={toggle} className="bg-play-pause bg-contain bg-no-repeat h-20 w-20"></button>
+      <button id="reset" type="button" onClick={reset} className="bg-reset bg-contain bg-no-repeat h-[4.5rem] w-[4.5rem]"></button>
     </div>
   );
 }
