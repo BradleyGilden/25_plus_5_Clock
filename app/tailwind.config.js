@@ -25,6 +25,8 @@ export default {
     backgroundImage: {
       'up-arrow': "url('https://img.icons8.com/ios-filled/100/3B372E/circled-chevron-up.png')",
       'down-arrow': "url('https://img.icons8.com/ios-filled/100/3B372E/circled-chevron-down.png')",
+      'play-pause': "url('https://img.icons8.com/external-tal-revivo-bold-tal-revivo/100/3B372E/external-playing-in-pause-button-on-the-music-application-music-bold-tal-revivo.png')",
+      'reset': "url('https://img.icons8.com/ios-filled/100/3B372E/recurring-appointment.png')",
     }
   },
   plugins: [],
