@@ -1,6 +1,6 @@
 import './App.css';
 import { useState, useEffect, useRef } from 'react';
-import audioFile from './alarm.mp3';
+import audioFile from '/alarm.mp3';
 
 function App() {
   // state values to control session and break length
@@ -9,17 +9,14 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(new Date(25*60*1000))
   const [playing, setPlaying] = useState(false);
   const [isSession, setIsSession] = useState(true);
+  const [isBeeping, setIsBeeping] = useState(false);
   const props = {
-    breakLength,
-    setBreakLength,
-    sessionLength,
-    setSessionLength,
-    timeLeft,
-    setTimeLeft,
-    playing,
-    setPlaying,
-    isSession,
-    setIsSession,
+    breakLength, setBreakLength,
+    sessionLength, setSessionLength,
+    timeLeft, setTimeLeft,
+    playing, setPlaying,
+    isSession, setIsSession,
+    isBeeping, setIsBeeping,
   };
   return (
     <div className="grid place-items-center w-screen h-screen bg-bg text-fg font-pp">
@@ -36,10 +33,8 @@ function App() {
 // break and session length controls
 const TimeControls = (props) => {
   const { 
-    sessionLength,
-    setSessionLength,
-    breakLength,
-    setBreakLength,
+    sessionLength, setSessionLength,
+    breakLength, setBreakLength,
     setTimeLeft,
     playing,
   } = props;
@@ -121,19 +116,25 @@ const PlayControls = (props) => {
     playing, setPlaying,
     setSessionLength, sessionLength,
     breakLength, setBreakLength,
-    isSession, setIsSession
+    isSession, setIsSession,
+    isBeeping, setIsBeeping,
   } = props;
 
+  // keep track of setInterval asynchronous functionality
   let intervalRef = useRef(null);
+
+  // reference to audio element
+  const audioRef = useRef(null);
+
   // toggle the playing state
   const toggle = () => {
-    let prev = playing;
+    // let prev = playing;
     setPlaying(!playing);
-    if (!prev) {
-      // if the state was previously paused, immediatly decrement
-      let newTime = new Date(Number(timeLeft) - 1000);
-      setTimeLeft(newTime);
-    }
+    // if (!prev) {
+    //   // if the state was previously paused, immediatly decrement
+    //   let newTime = new Date(Number(timeLeft) - 1000);
+    //   setTimeLeft(newTime);
+    // }
   }
   // reset the timer
   const reset = () => {
@@ -141,6 +142,10 @@ const PlayControls = (props) => {
     setTimeLeft(new Date(25*60*1000));
     setSessionLength(25);
     setBreakLength(5);
+    audioRef.current.pause()
+    audioRef.current.currentTime = 0;
+    setIsBeeping(false);
+    setIsSession(true);
   }
 
   useEffect(() => {
@@ -155,6 +160,10 @@ const PlayControls = (props) => {
       } else {
         newTime = new Date(Number(timeLeft) - 1000);
         setTimeLeft(newTime);
+        if (newTime.getSeconds() === 0 && newTime.getMinutes() === 0) {
+          setIsBeeping(true);
+          audioRef.current.play();
+        }
       }
     }
     intervalRef.current = setInterval(() => {
@@ -163,7 +172,7 @@ const PlayControls = (props) => {
       }
     }, 1000);
     return () => {clearInterval(intervalRef.current)}
-  }, [setTimeLeft, timeLeft, setPlaying, playing]);
+  }, [setTimeLeft, timeLeft, setPlaying, playing, isBeeping, setIsBeeping]);
 
   useEffect(() => {
     if (!playing) {
@@ -173,7 +182,7 @@ const PlayControls = (props) => {
 
   return (
     <div className="flex gap-5 w-3/5 justify-center items-center mt-6">
-      {/* <audio ref={audioRef} src={audioFile} onEnded={handleEnded} /> */}
+      <audio id="beep" ref={audioRef} src={audioFile} onEnded={() => setIsBeeping(false)} />
       <button id="start_stop" type="button" onClick={toggle} className="bg-play-pause bg-contain bg-no-repeat h-20 w-20"></button>
       <button id="reset" type="button" onClick={reset} className="bg-reset bg-contain bg-no-repeat h-[4.5rem] w-[4.5rem]"></button>
     </div>
