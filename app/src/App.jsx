@@ -1,5 +1,6 @@
 import './App.css';
 import { useState, useEffect, useRef } from 'react';
+import audioFile from './alarm.mp3';
 
 function App() {
   // state values to control session and break length
@@ -7,6 +8,7 @@ function App() {
   const [sessionLength, setSessionLength] = useState(25);
   const [timeLeft, setTimeLeft] = useState(new Date(25*60*1000))
   const [playing, setPlaying] = useState(false);
+  const [isSession, setIsSession] = useState(true);
   const props = {
     breakLength,
     setBreakLength,
@@ -15,7 +17,9 @@ function App() {
     timeLeft,
     setTimeLeft,
     playing,
-    setPlaying
+    setPlaying,
+    isSession,
+    setIsSession,
   };
   return (
     <div className="grid place-items-center w-screen h-screen bg-bg text-fg font-pp">
@@ -98,13 +102,13 @@ const SessionBreak = (props) => {
 
 // displays the time left in a session or break
 const Clock = (props) => {
-  const { timeLeft, sessionLength } = props;
+  const { timeLeft, sessionLength, isSession } = props;
 
   let minutes = sessionLength < 60 ? timeLeft.getMinutes().toString().padStart(2, '0') : '60';
   let seconds = timeLeft.getSeconds().toString().padStart(2, '0');
   return (
     <div id="clock" className="w-1/2 mt-5 py-10 sm:w-[calc(min(100vw,80vh)*0.5)] h-[calc(100vw*0.5)] sm:h-[calc(min(100vw,80vh)*0.5)] text-bg bg-fg rounded-full">
-      <h2 id="timer-label" className="text-2xl sm:text-3xl text-center">Session</h2>
+      <h2 id="timer-label" className="text-2xl sm:text-3xl text-center">{ isSession ? "Session": "Break" }</h2>
       <h1 id="time-left" className="text-center text-[calc(min(100vw,80vh)*0.13)] sm:mt-2">{minutes}:{seconds}</h1>
     </div>
   );
@@ -112,7 +116,13 @@ const Clock = (props) => {
 
 // implements play, pause and reset functionality
 const PlayControls = (props) => {
-  const { timeLeft, setTimeLeft, playing, setPlaying, setSessionLength, setBreakLength } = props;
+  const {
+    timeLeft, setTimeLeft,
+    playing, setPlaying,
+    setSessionLength, sessionLength,
+    breakLength, setBreakLength,
+    isSession, setIsSession
+  } = props;
 
   let intervalRef = useRef(null);
   // toggle the playing state
@@ -136,8 +146,16 @@ const PlayControls = (props) => {
   useEffect(() => {
     let newTime;
     const playPause = () => {
-      newTime = new Date(Number(timeLeft) - 1000);
-      setTimeLeft(newTime);
+      if (timeLeft.getSeconds() === 0 && timeLeft.getMinutes() === 0 && isSession) {
+        setTimeLeft(new Date(breakLength*60*1000));
+        setIsSession(false)
+      } else if (timeLeft.getSeconds() === 0 && timeLeft.getMinutes() === 0 && !isSession) {
+        setTimeLeft(new Date(sessionLength*60*1000));
+        setIsSession(true)
+      } else {
+        newTime = new Date(Number(timeLeft) - 1000);
+        setTimeLeft(newTime);
+      }
     }
     intervalRef.current = setInterval(() => {
       if (playing) {
@@ -155,6 +173,7 @@ const PlayControls = (props) => {
 
   return (
     <div className="flex gap-5 w-3/5 justify-center items-center mt-6">
+      {/* <audio ref={audioRef} src={audioFile} onEnded={handleEnded} /> */}
       <button id="start_stop" type="button" onClick={toggle} className="bg-play-pause bg-contain bg-no-repeat h-20 w-20"></button>
       <button id="reset" type="button" onClick={reset} className="bg-reset bg-contain bg-no-repeat h-[4.5rem] w-[4.5rem]"></button>
     </div>
